@@ -1,17 +1,11 @@
+// index.js
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config(); 
+const { connectToMongoDB, uploadUser } = require('./App/auth.js');
 
 const app = express();
 
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
-
-const userSchema = new mongoose.Schema({
-  name: String,
-});
-
-const User = mongoose.model('User', userSchema);
+connectToMongoDB();
 
 app.use(cors());
 app.use(express.json());
@@ -19,10 +13,13 @@ app.use(express.json());
 app.post('/api/uploadUser', async (req, res) => {
   try {
     const { name } = req.body;
-    const newUser = new User({ name });
-    await newUser.save();
+    const result = await uploadUser(name);
 
-    res.status(201).json({ message: 'User uploaded successfully' });
+    if (result.success) {
+      res.status(201).json({ message: result.message });
+    } else {
+      res.status(500).json({ message: result.message });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
