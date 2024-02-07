@@ -1,10 +1,10 @@
-// index.js
 const express = require('express');
 const cors = require('cors');
-const { connectToMongoDB } = require('./App/auth.js'); // Import the connectToMongoDB function
-const { uploadUserWithDetails } = require('./App/auth.js'); // Import the uploadUser functions
-const { checkUid, findNameByUid} = require('./App/uid.js');
-const {checkUserEmailInMongoDB } = require('./App/email.js')
+const { connectToMongoDB } = require('./App/db');
+const { uploadUserWithDetails } = require('./App/auth.js');
+const { checkUid, findNameByUid, checkUidByEmailAndName } = require('./App/uid.js');
+const { checkUserEmailInMongoDB } = require('./App/email.js');
+const { replaceUid } = require('./App/uid.js'); // Import the replaceUid function from uid.js
 
 const app = express();
 
@@ -18,7 +18,6 @@ app.get('/api/checkUid/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
     const result = await checkUid(uid);
-
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -48,6 +47,25 @@ app.get('/api/findNameByUid/:uid', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Endpoint to check UID based on email and name
+app.get('/api/checkUidByEmailAndName', async (req, res) => {
+  try {
+    const { email, name } = req.query;
+    const result = await checkUidByEmailAndName(email, name);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to replace UID
+app.put('/api/replaceUid', async (req, res) => {
+  const { oldUid, newUid } = req.body;
+  const result = await replaceUid(oldUid, newUid);
+  res.json(result);
 });
 
 // Upload user route
