@@ -54,5 +54,6 @@ const uploadUserWithDetails = async (name, email, uid) => {
 
 module.exports = {
   connectToMongoDB,
-  uploadUserWithDetails
+  uploadUserWithDetails,
+  User
 };

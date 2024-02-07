@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { connectToMongoDB } = require('./App/auth.js'); // Import the connectToMongoDB function
 const { uploadUserWithDetails} = require('./App/auth.js'); // Import the uploadUser functions
-const { checkUid } = require('./App/uid.js');
+const { checkUid,findNameByUid } = require('./App/uid.js');
 
 const app = express();
 
@@ -18,6 +18,19 @@ app.get('/api/checkUid/:uid', async (req, res) => {
     const { uid } = req.params;
     const result = await checkUid(uid);
 
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// Endpoint to find name by UID
+app.get('/api/findNameByUid/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const result = await findNameByUid(uid);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
