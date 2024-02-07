@@ -1,7 +1,8 @@
 // index.js
 const express = require('express');
 const cors = require('cors');
-const { connectToMongoDB, uploadUser } = require('./App/auth.js');
+const { connectToMongoDB } = require('./App/auth.js'); // Import the connectToMongoDB function
+const { uploadUserWithDetails} = require('./App/auth.js'); // Import the uploadUser functions
 const { checkUid } = require('./App/uid.js');
 
 const app = express();
@@ -24,21 +25,12 @@ app.get('/api/checkUid/:uid', async (req, res) => {
   }
 });
 
-// Endpoint to upload user data
-app.post('/api/uploadUser', async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    const result = await uploadUser(name, email);
 
-    if (result.success) {
-      res.status(201).json({ message: result.message });
-    } else {
-      res.status(500).json({ message: result.message });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+// Upload user route
+app.post('/api/uploadUser', async (req, res) => {
+  const { name, email, uid } = req.body;
+  const result = await uploadUserWithDetails(name, email, uid);
+  res.json(result);
 });
 
 const PORT = process.env.PORT || 3001;
