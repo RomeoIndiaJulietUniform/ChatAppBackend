@@ -2,14 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const { connectToMongoDB } = require('./App/db');
 const { uploadUserWithDetails } = require('./App/auth.js');
-const { checkUid, findNameByUid, checkUidByEmailAndName } = require('./App/uid.js');
+const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
 const { checkUserEmailInMongoDB } = require('./App/email.js');
-const { replaceUid } = require('./App/uid.js'); // Import the replaceUid function from uid.js
-
+const { createGroup } = require('./App/group.js'); // Updated import statement for createGroup function
 const app = express();
 
+// Connect to MongoDB
 connectToMongoDB();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -66,6 +67,18 @@ app.put('/api/replaceUid', async (req, res) => {
   const { oldUid, newUid } = req.body;
   const result = await replaceUid(oldUid, newUid);
   res.json(result);
+});
+
+// Endpoint to create and upload a group
+app.post('/api/createGroup', async (req, res) => {
+  try {
+    const { Name, memberEmails } = req.body; // Update parameter names according to the new requirements
+    const result = await createGroup(Name, memberEmails);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Upload user route
