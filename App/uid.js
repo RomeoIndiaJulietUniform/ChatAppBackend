@@ -1,16 +1,8 @@
 // uid.js
-const mongoose = require('mongoose');
-const User = require('./auth.js').User; // Import the User model from auth.js
-require('dotenv').config();
+const { connectToMongoDB } = require('./db'); // Import connectToMongoDB function from db.js
+const { User } = require('./auth.js'); // Import the User model from auth.js
 
-// Connect to MongoDB using Mongoose
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
+connectToMongoDB(); // Connect to MongoDB
 
 // Function to check if UID is present
 const checkUid = async (uid) => {
@@ -25,7 +17,7 @@ const checkUid = async (uid) => {
   }
 };
 
-// No need to use MongoClient directly for this function
+// Function to find name by UID
 const findNameByUid = async (uid) => {
   try {
     console.log('Finding name by UID:', uid);
