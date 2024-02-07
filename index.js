@@ -4,7 +4,7 @@ const { connectToMongoDB } = require('./App/db');
 const { uploadUserWithDetails } = require('./App/auth.js');
 const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
 const { checkUserEmailInMongoDB } = require('./App/email.js');
-const { createGroup } = require('./App/group.js'); // Updated import statement for createGroup function
+const { createGroup, addMemberToGroup } = require('./App/group.js'); // Updated import statement for createGroup and addMemberToGroup functions
 const app = express();
 
 // Connect to MongoDB
@@ -69,11 +69,11 @@ app.put('/api/replaceUid', async (req, res) => {
   res.json(result);
 });
 
-// Endpoint to create and upload a group
+// Endpoint to create a group
 app.post('/api/createGroup', async (req, res) => {
   try {
-    const { Name, memberEmails } = req.body; // Update parameter names according to the new requirements
-    const result = await createGroup(Name, memberEmails);
+    const { Name, memberEmails, groupUid } = req.body;
+    const result = await createGroup(Name, memberEmails, groupUid);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -81,15 +81,20 @@ app.post('/api/createGroup', async (req, res) => {
   }
 });
 
-// Upload user route
-app.post('/api/uploadUser', async (req, res) => {
-  const { name, email, uid } = req.body;
-  const result = await uploadUserWithDetails(name, email, uid);
-  res.json(result);
+// Endpoint to add a member to a group
+app.post('/api/addMemberToGroup', async (req, res) => {
+  try {
+    const { groupID, memberIdentifier, groupUid } = req.body;
+    const result = await addMemberToGroup(groupID, groupUid, memberIdentifier);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
+// Start the server
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
