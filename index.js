@@ -1,10 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { connectToMongoDB } = require('./App/db');
-const { uploadUserWithDetails } = require('./App/auth.js');
 const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
 const { checkUserEmailInMongoDB } = require('./App/email.js');
-const { createGroup, addMemberToGroup } = require('./App/group.js'); // Updated import statement for createGroup and addMemberToGroup functions
+const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js'); // Include findGroupNameByIdOrName
 const app = express();
 
 // Connect to MongoDB
@@ -86,6 +85,18 @@ app.post('/api/addMemberToGroup', async (req, res) => {
   try {
     const { groupID, memberIdentifier, groupUid } = req.body;
     const result = await addMemberToGroup(groupID, groupUid, memberIdentifier);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to check if a group name already exists
+app.get('/api/findGroupNameByIdOrName', async (req, res) => { // Changed the endpoint
+  try {
+    const { groupId, name } = req.query; // Changed parameters
+    const result = await findGroupNameByIdOrName(groupId, name); // Changed function call
     res.status(200).json(result);
   } catch (error) {
     console.error(error);

@@ -48,9 +48,12 @@ const addMemberToGroup = async (groupID, groupUid, memberIdentifier) => {
     if (memberIdentifier.includes('@')) {
       // If memberIdentifier contains '@', consider it as an email
       member = await User.findOne({ email: memberIdentifier });
-    } else {
-      // Otherwise, treat it as a UID
+    } else if (memberIdentifier.length === 16) {
+      // If memberIdentifier length is 12, treat it as a UID
       member = await User.findOne({ uid: memberIdentifier });
+    } else {
+      // Otherwise, invalid memberIdentifier format
+      return { success: false, message: 'Invalid member identifier format' };
     }
 
     console.log('Member:', member);
@@ -84,7 +87,37 @@ const addMemberToGroup = async (groupID, groupUid, memberIdentifier) => {
   }
 };
 
+
+// Function to find group's name by groupUid or name
+const findGroupNameByIdOrName = async (groupUid, groupName) => {
+  try {
+    console.log('Received groupUid:', groupUid); // Log the received groupUid
+    // Find group by groupUid or groupName
+    let group;
+    if (groupUid) {
+      group = await Group.findOne({ groupUid: groupUid });
+    } else if (groupName) {
+      group = await Group.findOne({ Name: groupName });
+    }
+
+    // If group found, return its name and log it
+    if (group) {
+      console.log('Found group name:', group.Name);
+      return { success: true, groupName: group.Name };
+    } else {
+      // If no group found, return error message
+      return { success: false, message: 'Group not found' };
+    }
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Failed to find group', error: error.message };
+  }
+};
+
+
+
 module.exports = {
   createGroup,
-  addMemberToGroup
+  addMemberToGroup,
+  findGroupNameByIdOrName
 };

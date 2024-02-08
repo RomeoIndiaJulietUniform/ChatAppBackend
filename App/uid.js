@@ -18,20 +18,31 @@ const checkUid = async (uid) => {
 };
 
 // Function to find name by UID
-const findNameByUid = async (uid) => {
+const findNameByUid = async (input) => {
   try {
-    console.log('Finding name by UID:', uid);
-    const user = await User.findOne({ uid });
+    console.log('Finding name by input:', input);
+    let user;
+
+    if (input.includes('@')) {
+      // If input contains '@', it's likely an email
+      user = await User.findOne({ email: input });
+    } else if (input.length === 16) {
+      // If input is 24 characters long, it's likely a UID
+      user = await User.findOne({ uid: input });
+    } else {
+      // Otherwise, treat it as a name
+      user = await User.findOne({ name: input });
+    }
 
     if (user) {
       console.log('Found name:', user.name);
       return { name: user.name };
     } else {
-      console.log('No user found with UID:', uid);
+      console.log('No user found with input:', input);
       return { name: null };
     }
   } catch (error) {
-    console.error('Error finding name by UID:', error);
+    console.error('Error finding name by input:', error);
     throw error;
   }
 };
