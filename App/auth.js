@@ -18,7 +18,7 @@ const User = mongoose.model('User', userSchema);
 let userPendingUid = null;
 
 // Upload user with name, email, and UID
-const uploadUserWithDetails = async (name, email, uid) => {
+const uploadUser = async (name, email, uid) => {
   try {
     if (uid) {
       // If UID is provided, upload the user with all data
@@ -54,6 +54,6 @@ const uploadUserWithDetails = async (name, email, uid) => {
 
 module.exports = {
   connectToMongoDB,
-  uploadUserWithDetails,
+  uploadUser,
   User
 };

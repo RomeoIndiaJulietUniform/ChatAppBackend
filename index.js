@@ -3,7 +3,8 @@ const cors = require('cors');
 const { connectToMongoDB } = require('./App/db');
 const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
 const { checkUserEmailInMongoDB } = require('./App/email.js');
-const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js'); // Include findGroupNameByIdOrName
+const { uploadUser } = require('./App/auth.js');
+const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js');
 const app = express();
 
 // Connect to MongoDB
@@ -12,6 +13,7 @@ connectToMongoDB();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
 
 // Endpoint to check if UID is present
 app.get('/api/checkUid/:uid', async (req, res) => {
@@ -63,9 +65,14 @@ app.get('/api/checkUidByEmailAndName', async (req, res) => {
 
 // Endpoint to replace UID
 app.put('/api/replaceUid', async (req, res) => {
-  const { oldUid, newUid } = req.body;
-  const result = await replaceUid(oldUid, newUid);
-  res.json(result);
+  try {
+    const { oldUid, newUid } = req.body;
+    const result = await replaceUid(oldUid, newUid);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Endpoint to create a group
@@ -83,8 +90,8 @@ app.post('/api/createGroup', async (req, res) => {
 // Endpoint to add a member to a group
 app.post('/api/addMemberToGroup', async (req, res) => {
   try {
-    const { groupID, memberIdentifier, groupUid } = req.body;
-    const result = await addMemberToGroup(groupID, groupUid, memberIdentifier);
+    const { groupId, memberIdentifier, groupUid } = req.body;
+    const result = await addMemberToGroup(groupId, groupUid, memberIdentifier);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -93,10 +100,22 @@ app.post('/api/addMemberToGroup', async (req, res) => {
 });
 
 // Endpoint to check if a group name already exists
-app.get('/api/findGroupNameByIdOrName', async (req, res) => { // Changed the endpoint
+app.get('/api/findGroupNameByIdOrName', async (req, res) => {
   try {
-    const { groupId, name } = req.query; // Changed parameters
-    const result = await findGroupNameByIdOrName(groupId, name); // Changed function call
+    const { groupId, name } = req.query;
+    const result = await findGroupNameByIdOrName(groupId, name);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to upload user details
+app.post('/api/uploadUser', async (req, res) => {
+  try {
+    const { name, email, uid } = req.body;
+    const result = await uploadUser(name, email, uid);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
