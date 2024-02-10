@@ -1,0 +1,75 @@
+// contacts.js
+const mongoose = require('mongoose');
+const { User, uploadUser } = require('./auth');
+
+// Define contact schema
+const contactSchema = new mongoose.Schema({
+  names: [String], // Array of names
+  contactIds: [String], // Array of contact IDs
+  uid: String,
+});
+
+const Contact = mongoose.model('Contact', contactSchema);
+
+// Function to create or update a contact in the database
+const createOrUpdateContact = async (names, contactIds, uid) => {
+  try {
+    // Find existing contact with the given UID
+    let existingContact = await Contact.findOne({ uid });
+
+    if (existingContact) {
+      // If contact with the given UID exists, update names and contactIds
+      existingContact.names = [...new Set(existingContact.names.concat(names))];
+      existingContact.contactIds = [...new Set(existingContact.contactIds.concat(contactIds))];
+      await existingContact.save();
+      console.log('Contact updated successfully:', existingContact);
+      return existingContact;
+    } else {
+      // If contact with the given UID does not exist, create a new contact
+      const newContact = new Contact({ names, contactIds, uid });
+      await newContact.save();
+      console.log('Contact created successfully:', newContact);
+      return newContact;
+    }
+  } catch (error) {
+    console.error('Error creating or updating contact:', error);
+    throw new Error('Error creating or updating contact');
+  }
+};
+
+// Function to add contact to a user
+const addContact = async (uid, contactNames, contactIds) => {
+  try {
+    console.log('Adding contact with the following details:');
+    console.log('UID:', uid); // Logging the uid parameter
+
+    // Upload the user if UID is provided
+    if (uid) {
+      // Pass uid as a parameter when uploading the user
+      await uploadUser(null, null, uid);
+    }
+
+    console.log('Contact Names:', contactNames);
+    console.log('Contact IDs:', contactIds);
+
+    // Create or update a contact document with UID
+    await createOrUpdateContact(contactNames, contactIds, uid);
+
+    // Find the user by UID
+    const user = await User.findOne({ uid });
+    if (!user) {
+      console.log('User not found');
+      return { success: false, message: 'User not found' };
+    }
+
+    console.log('Contact added successfully');
+    return { success: true, message: 'Contact added successfully' };
+  } catch (error) {
+    console.error('Internal server error:', error);
+    return { success: false, message: 'Internal server error' };
+  }
+};
+
+module.exports = {
+  addContact,
+};

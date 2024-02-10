@@ -5,6 +5,9 @@ const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require(
 const { checkUserEmailInMongoDB } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
 const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js');
+const { addContact } = require('./App/contact.js');
+const bodyParser = require('body-parser');
+
 const app = express();
 
 // Connect to MongoDB
@@ -13,6 +16,9 @@ connectToMongoDB();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 // Endpoint to check if UID is present
@@ -122,6 +128,31 @@ app.post('/api/uploadUser', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+// Routes
+app.post('/api/user/contact', async (req, res) => {
+  const { uid, name, contactId } = req.body;
+  
+  // Log the inputs
+  console.log('Received request with the following data:');
+  console.log('UID:', uid);
+  console.log('Name:', name);
+  console.log('Contact ID:', contactId);
+
+  if (!uid || !name || !contactId) {
+    return res.status(400).json({ success: false, message: 'UID, name, and contactId are required' });
+  }
+
+  try {
+    const result = await addContact(uid, name, contactId);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3001;
