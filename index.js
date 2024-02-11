@@ -5,7 +5,7 @@ const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require(
 const { checkUserEmailInMongoDB } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
 const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js');
-const { addContact } = require('./App/contact.js');
+const { addContact, provideUidforNames } = require('./App/contact.js');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -150,6 +150,43 @@ app.post('/api/user/contact', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+
+// Route to add a contact
+app.post('/add-contact', async (req, res) => {
+  const { uid, contactNames, contactIds } = req.body;
+
+  try {
+    // Call the addContact function with provided parameters
+    const result = await addContact(uid, contactNames, contactIds);
+
+    // Send response based on the result of the addContact function
+    if (result.success) {
+      res.status(200).json({ message: result.message });
+    } else {
+      res.status(500).json({ message: result.message });
+    }
+  } catch (error) {
+    console.error('Error adding contact:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to fetch names based on UID
+app.get('/fetch-names/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    // Call the provideUidforNames function with the provided UID
+    const names = await provideUidforNames(uid);
+
+    // Send response with the fetched names
+    res.status(200).json({ names });
+  } catch (error) {
+    console.error('Error fetching names:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

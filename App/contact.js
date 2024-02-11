@@ -70,6 +70,31 @@ const addContact = async (uid, contactNames, contactIds) => {
   }
 };
 
+// Function to fetch names based on UID
+const provideUidforNames = async (uid) => {
+  try {
+    // Find the contact document with the given UID
+    const contact = await Contact.findOne({ uid });
+
+    console.log('Har Har Mahadev',uid);
+
+    if (!contact) {
+      console.log('Contact not found for UID:', uid);
+      return [];
+    }
+
+    // Return the list of names associated with the contact
+    return contact.names;
+  } catch (error) {
+    console.error('Error fetching names by UID:', error);
+    throw new Error('Error fetching names by UID');
+  }
+};
+
+
+
+
 module.exports = {
   addContact,
+  provideUidforNames,
 };
