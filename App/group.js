@@ -88,15 +88,19 @@ const addMemberToGroup = async (groupID, groupUid, memberIdentifier) => {
 };
 
 
-// Function to find group's name by groupUid or name
 const findGroupNameByIdOrName = async (groupUid, groupName) => {
   try {
-    console.log('Received groupUid:', groupUid); // Log the received groupUid
+    // Log the received input parameters
+    console.log('Received groupUid:', groupUid);
+    console.log('Received groupName:', groupName);
+
     // Find group by groupUid or groupName
     let group;
     if (groupUid) {
+      console.log('Searching for group with groupUid:', groupUid);
       group = await Group.findOne({ groupUid: groupUid });
     } else if (groupName) {
+      console.log('Searching for group with groupName:', groupName);
       group = await Group.findOne({ Name: groupName });
     }
 
@@ -106,10 +110,12 @@ const findGroupNameByIdOrName = async (groupUid, groupName) => {
       return { success: true, groupName: group.Name };
     } else {
       // If no group found, return error message
+      console.log('Group not found');
       return { success: false, message: 'Group not found' };
     }
   } catch (error) {
-    console.error(error);
+    // Log any errors that occur
+    console.error('Error occurred:', error);
     return { success: false, message: 'Failed to find group', error: error.message };
   }
 };

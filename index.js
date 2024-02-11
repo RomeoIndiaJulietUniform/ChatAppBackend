@@ -5,7 +5,7 @@ const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require(
 const { checkUserEmailInMongoDB } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
 const { createGroup, addMemberToGroup, findGroupNameByIdOrName, addUserToGroup } = require('./App/group.js');
-const { addContact, provideUidforNames } = require('./App/contact.js');
+const { addContact, uploadGroupInfoToContact, provideUidforNames} = require('./App/contact.js'); // Import uploadGroupInfoToContact function
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -19,7 +19,6 @@ app.use(express.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
 
 // Endpoint to check if UID is present
 app.get('/api/checkUid/:uid', async (req, res) => {
@@ -156,11 +155,11 @@ app.post('/api/user/contact', async (req, res) => {
 
 // Route to add a contact
 app.post('/add-contact', async (req, res) => {
-  const { uid, contactNames, contactIds } = req.body;
+  const { uid, contactNames, contactIds, groupName, groupId } = req.body; // Add groupName and groupId here
 
   try {
     // Call the addContact function with provided parameters
-    const result = await addContact(uid, contactNames, contactIds);
+    const result = await addContact(uid, contactNames, contactIds, groupName, groupId);
 
     // Send response based on the result of the addContact function
     if (result.success) {
@@ -206,6 +205,31 @@ app.post('/api/addUserToGroup', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
+
+// Endpoint to upload group info to contact
+app.post('/uploadGroupInfoToContact', async (req, res) => {
+  try {
+    const { uid, groupName, groupId } = req.body;
+
+    // Check if required parameters are provided
+    if (!uid || !groupName || !groupId) {
+      return res.status(400).json({ success: false, message: 'Missing parameters' });
+    }
+
+    // Log the input with the provided statement
+    console.log("This is NATO Eagle 1, we're patrolling sector Bravo-3, over");
+    console.log('Input:', { uid, groupName, groupId });
+
+    // Call uploadGroupInfoToContact function with provided parameters
+    const result = await uploadGroupInfoToContact(uid, groupName, groupId);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Internal server error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 
 
 

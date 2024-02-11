@@ -7,8 +7,8 @@ const contactSchema = new mongoose.Schema({
   names: [String], // Array of names
   contactIds: [String], // Array of contact IDs
   uid: String,
-  groupName: String, // Group name field
-  groupId: String, // Group ID field
+  groupName: [String], // Group name field
+  groupId: [String], // Group ID field
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
@@ -42,7 +42,7 @@ const createOrUpdateContact = async (names, contactIds, uid, groupName, groupId)
 };
 
 // Function to add contact to a user
-const addContact = async (uid, contactNames, contactIds, groupName, groupId) => {
+const addContact = async (uid, contactNames, contactIds) => {
   try {
     console.log('Adding contact with the following details:');
     console.log('UID:', uid); // Logging the uid parameter
@@ -55,11 +55,9 @@ const addContact = async (uid, contactNames, contactIds, groupName, groupId) => 
 
     console.log('Contact Names:', contactNames);
     console.log('Contact IDs:', contactIds);
-    console.log('Group Name:', groupName);
-    console.log('Group ID:', groupId);
 
-    // Create or update a contact document with UID, groupName, and groupId
-    await createOrUpdateContact(contactNames, contactIds, uid, groupName, groupId);
+    // Create or update a contact document with UID
+    await createOrUpdateContact(contactNames, contactIds, uid);
 
     // Find the user by UID
     const user = await User.findOne({ uid });
@@ -73,6 +71,20 @@ const addContact = async (uid, contactNames, contactIds, groupName, groupId) => 
   } catch (error) {
     console.error('Internal server error:', error);
     return { success: false, message: 'Internal server error' };
+  }
+};
+
+
+// Function to upload UID, group name, and group UID to the contact
+const uploadGroupInfoToContact = async (uid, groupName, groupId) => {
+  try {
+    // Call createOrUpdateContact function with the provided parameters
+    await createOrUpdateContact([], [], uid, groupName, groupId);
+    console.log('Group info uploaded to contact successfully');
+    return { success: true, message: 'Group info uploaded to contact successfully' };
+  } catch (error) {
+    console.error('Error uploading group info to contact:', error);
+    return { success: false, message: 'Error uploading group info to contact' };
   }
 };
 
@@ -99,5 +111,6 @@ const provideUidforNames = async (uid) => {
 
 module.exports = {
   addContact,
+  uploadGroupInfoToContact,
   provideUidforNames,
 };
