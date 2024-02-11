@@ -116,8 +116,43 @@ const findGroupNameByIdOrName = async (groupUid, groupName) => {
 
 
 
+// Function to add user to a group by UID, name, and group UID
+const addUserToGroup = async (userUid, userName, groupUid) => {
+  try {
+    // Find user by UID and check if it exists
+    const user = await User.findOne({ uid: userUid });
+    if (!user) {
+      return { success: false, message: 'User not found with the provided UID' };
+    }
+
+    // Find group by group UID and check if it exists
+    const group = await Group.findOne({ groupUid: groupUid });
+    if (!group) {
+      return { success: false, message: 'Group not found with the provided group UID' };
+    }
+
+    // Check if the user is already a member of the group
+    if (group.memberEmails.includes(user.email) || group.memberNames.includes(user.name)) {
+      return { success: false, message: 'User is already a member of the group' };
+    }
+
+    // Add user to group
+    group.memberNames.push(userName);
+    group.memberEmails.push(user.email);
+    group.memberCount++;
+    await group.save();
+    console.log('User added to group successfully');
+
+    return { success: true, message: 'User added to group successfully', group };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Failed to add user to group', error: error.message };
+  }
+};
+
 module.exports = {
   createGroup,
   addMemberToGroup,
-  findGroupNameByIdOrName
+  findGroupNameByIdOrName,
+  addUserToGroup 
 };

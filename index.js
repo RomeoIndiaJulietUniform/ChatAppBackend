@@ -4,7 +4,7 @@ const { connectToMongoDB } = require('./App/db');
 const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
 const { checkUserEmailInMongoDB } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
-const { createGroup, addMemberToGroup, findGroupNameByIdOrName } = require('./App/group.js');
+const { createGroup, addMemberToGroup, findGroupNameByIdOrName, addUserToGroup } = require('./App/group.js');
 const { addContact, provideUidforNames } = require('./App/contact.js');
 const bodyParser = require('body-parser');
 
@@ -189,6 +189,24 @@ app.get('/fetch-names/:uid', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+
+// API endpoint for adding a user to a group
+app.post('/api/addUserToGroup', async (req, res) => {
+  const { userUid, userName, groupUid } = req.body; // Assuming you send these parameters in the request body
+  try {
+    const result = await addUserToGroup(userUid, userName, groupUid);
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 
 
 // Start the server

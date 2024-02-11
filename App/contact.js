@@ -7,26 +7,30 @@ const contactSchema = new mongoose.Schema({
   names: [String], // Array of names
   contactIds: [String], // Array of contact IDs
   uid: String,
+  groupName: String, // Group name field
+  groupId: String, // Group ID field
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
 
 // Function to create or update a contact in the database
-const createOrUpdateContact = async (names, contactIds, uid) => {
+const createOrUpdateContact = async (names, contactIds, uid, groupName, groupId) => {
   try {
     // Find existing contact with the given UID
     let existingContact = await Contact.findOne({ uid });
 
     if (existingContact) {
-      // If contact with the given UID exists, update names and contactIds
+      // If contact with the given UID exists, update names, contactIds, groupName, and groupId
       existingContact.names = [...new Set(existingContact.names.concat(names))];
       existingContact.contactIds = [...new Set(existingContact.contactIds.concat(contactIds))];
+      existingContact.groupName = groupName;
+      existingContact.groupId = groupId;
       await existingContact.save();
       console.log('Contact updated successfully:', existingContact);
       return existingContact;
     } else {
       // If contact with the given UID does not exist, create a new contact
-      const newContact = new Contact({ names, contactIds, uid });
+      const newContact = new Contact({ names, contactIds, uid, groupName, groupId });
       await newContact.save();
       console.log('Contact created successfully:', newContact);
       return newContact;
@@ -38,7 +42,7 @@ const createOrUpdateContact = async (names, contactIds, uid) => {
 };
 
 // Function to add contact to a user
-const addContact = async (uid, contactNames, contactIds) => {
+const addContact = async (uid, contactNames, contactIds, groupName, groupId) => {
   try {
     console.log('Adding contact with the following details:');
     console.log('UID:', uid); // Logging the uid parameter
@@ -51,9 +55,11 @@ const addContact = async (uid, contactNames, contactIds) => {
 
     console.log('Contact Names:', contactNames);
     console.log('Contact IDs:', contactIds);
+    console.log('Group Name:', groupName);
+    console.log('Group ID:', groupId);
 
-    // Create or update a contact document with UID
-    await createOrUpdateContact(contactNames, contactIds, uid);
+    // Create or update a contact document with UID, groupName, and groupId
+    await createOrUpdateContact(contactNames, contactIds, uid, groupName, groupId);
 
     // Find the user by UID
     const user = await User.findOne({ uid });
@@ -90,9 +96,6 @@ const provideUidforNames = async (uid) => {
     throw new Error('Error fetching names by UID');
   }
 };
-
-
-
 
 module.exports = {
   addContact,
