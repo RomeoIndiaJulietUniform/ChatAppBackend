@@ -38,7 +38,7 @@ const findNameByUid = async (input) => {
       console.log('Found name:', user.name);
       return { name: user.name };
     } else {
-      console.log('No user found with input:', input);
+      console.log('No user found with input Bravo 6:', input);
       return { name: null };
     }
   } catch (error) {

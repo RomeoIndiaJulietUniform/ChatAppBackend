@@ -4,33 +4,27 @@ const { User, uploadUser } = require('./auth');
 
 // Define contact schema
 const contactSchema = new mongoose.Schema({
-  names: [String], // Array of names
-  contactIds: [String], // Array of contact IDs
-  uid: String,
-  groupName: [String], // Group name field
-  groupId: [String], // Group ID field
+  contacts: [[{ name: String, id: String }]], // Array of 2D arrays containing name and ID
+  uid: String
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
 
 // Function to create or update a contact in the database
-const createOrUpdateContact = async (names, contactIds, uid, groupName, groupId) => {
+const createOrUpdateContact = async (contacts, uid) => {
   try {
     // Find existing contact with the given UID
     let existingContact = await Contact.findOne({ uid });
 
     if (existingContact) {
-      // If contact with the given UID exists, update names, contactIds, groupName, and groupId
-      existingContact.names = [...new Set(existingContact.names.concat(names))];
-      existingContact.contactIds = [...new Set(existingContact.contactIds.concat(contactIds))];
-      existingContact.groupName = groupName;
-      existingContact.groupId = groupId;
+      // If contact with the given UID exists, update contacts
+      existingContact.contacts = existingContact.contacts.concat([contacts]);
       await existingContact.save();
       console.log('Contact updated successfully:', existingContact);
       return existingContact;
     } else {
       // If contact with the given UID does not exist, create a new contact
-      const newContact = new Contact({ names, contactIds, uid, groupName, groupId });
+      const newContact = new Contact({ contacts: [contacts], uid });
       await newContact.save();
       console.log('Contact created successfully:', newContact);
       return newContact;
@@ -42,7 +36,7 @@ const createOrUpdateContact = async (names, contactIds, uid, groupName, groupId)
 };
 
 // Function to add contact to a user
-const addContact = async (uid, contactNames, contactIds) => {
+const addContact = async (uid, contactName, contactId) => {
   try {
     console.log('Adding contact with the following details:');
     console.log('UID:', uid); // Logging the uid parameter
@@ -51,13 +45,14 @@ const addContact = async (uid, contactNames, contactIds) => {
     if (uid) {
       // Pass uid as a parameter when uploading the user
       await uploadUser(null, null, uid);
+      console.log('User uploaded successfully:', uid);
     }
 
-    console.log('Contact Names:', contactNames);
-    console.log('Contact IDs:', contactIds);
+    console.log('Contact Name:', contactName);
+    console.log('Contact ID:', contactId);
 
     // Create or update a contact document with UID
-    await createOrUpdateContact(contactNames, contactIds, uid);
+    await createOrUpdateContact([{ name: contactName, id: contactId }], uid);
 
     // Find the user by UID
     const user = await User.findOne({ uid });
@@ -74,35 +69,24 @@ const addContact = async (uid, contactNames, contactIds) => {
   }
 };
 
-
-// Function to upload UID, group name, and group UID to the contact
-const uploadGroupInfoToContact = async (uid, groupName, groupId) => {
-  try {
-    // Call createOrUpdateContact function with the provided parameters
-    await createOrUpdateContact([], [], uid, groupName, groupId);
-    console.log('Group info uploaded to contact successfully');
-    return { success: true, message: 'Group info uploaded to contact successfully' };
-  } catch (error) {
-    console.error('Error uploading group info to contact:', error);
-    return { success: false, message: 'Error uploading group info to contact' };
-  }
-};
-
-// Function to fetch names based on UID
 const provideUidforNames = async (uid) => {
   try {
+    console.log('Fetching names for UID:', uid);
+
     // Find the contact document with the given UID
     const contact = await Contact.findOne({ uid });
-
-    console.log('Har Har Mahadev',uid);
 
     if (!contact) {
       console.log('Contact not found for UID:', uid);
       return [];
     }
 
-    // Return the list of names associated with the contact
-    return contact.names;
+    // Extract names from the 2D array
+    const names = contact.contacts.flatMap(contactArray => 
+      contactArray.map(contact => contact.name)
+    );
+    console.log('Names fetched successfully:', names);
+    return names;
   } catch (error) {
     console.error('Error fetching names by UID:', error);
     throw new Error('Error fetching names by UID');
@@ -111,6 +95,5 @@ const provideUidforNames = async (uid) => {
 
 module.exports = {
   addContact,
-  uploadGroupInfoToContact,
   provideUidforNames,
 };

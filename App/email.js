@@ -17,4 +17,22 @@ const checkUserEmailInMongoDB = async (email) => {
   }
 };
 
-module.exports = { checkUserEmailInMongoDB };
+// Function to get user's email by uid
+const getUserEmailByUid = async (uid) => {
+  try {
+    // Find user by uid
+    const user = await User.findById(uid);
+
+    // If user found, return email
+    if (user) {
+      return { email: user.email };
+    } else {
+      return { error: 'User not found' };
+    }
+  } catch (error) {
+    console.error(error);
+    return { error: 'Internal server error' };
+  }
+};
+
+module.exports = { checkUserEmailInMongoDB, getUserEmailByUid };

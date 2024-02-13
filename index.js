@@ -2,13 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const { connectToMongoDB } = require('./App/db');
 const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require('./App/uid.js');
-const { checkUserEmailInMongoDB } = require('./App/email.js');
+const { checkUserEmailInMongoDB, getUserEmailByUid } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
 const { createGroup, addMemberToGroup, findGroupNameByIdOrName, addUserToGroup } = require('./App/group.js');
 const { addContact, uploadGroupInfoToContact, provideUidforNames} = require('./App/contact.js'); // Import uploadGroupInfoToContact function
+const socketUser = require('./App/Socketuser.js');
+const { fetchSenderAndReceiverUids } = require('./App/apicalls.js');
 const bodyParser = require('body-parser');
+const http = require('http');
 
 const app = express();
+
+const server = http.createServer(app);
+socketUser(server); 
 
 // Connect to MongoDB
 connectToMongoDB();
@@ -206,30 +212,33 @@ app.post('/api/addUserToGroup', async (req, res) => {
   }
 });
 
-// Endpoint to upload group info to contact
-app.post('/uploadGroupInfoToContact', async (req, res) => {
-  try {
-    const { uid, groupName, groupId } = req.body;
 
-    // Check if required parameters are provided
-    if (!uid || !groupName || !groupId) {
-      return res.status(400).json({ success: false, message: 'Missing parameters' });
-    }
 
-    // Log the input with the provided statement
-    console.log("This is NATO Eagle 1, we're patrolling sector Bravo-3, over");
-    console.log('Input:', { uid, groupName, groupId });
-
-    // Call uploadGroupInfoToContact function with provided parameters
-    const result = await uploadGroupInfoToContact(uid, groupName, groupId);
-
-    res.status(200).json(result);
-  } catch (error) {
-    console.error('Internal server error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
+// Define a new route to fetch sender and receiver UIDs
+app.get('/api/fetchSenderAndReceiverUids', (req, res) => {
+  // Fetch sender and receiver UIDs
+  fetchSenderAndReceiverUids()
+    .then(({ senderUid, receiverUid }) => {
+      // Send the sender and receiver UIDs as response
+      res.status(200).json({ senderUid, receiverUid });
+    })
+    .catch((error) => {
+      console.error('Error fetching sender and receiver UIDs:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
 });
 
+
+app.get('/api/getUserEmailByUid/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const result = await getUserEmailByUid(uid);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 
