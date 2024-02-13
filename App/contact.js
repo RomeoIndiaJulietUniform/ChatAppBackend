@@ -68,7 +68,6 @@ const addContact = async (uid, contactName, contactId) => {
     return { success: false, message: 'Internal server error' };
   }
 };
-
 const provideUidforNames = async (uid) => {
   try {
     console.log('Fetching names for UID:', uid);
@@ -81,12 +80,12 @@ const provideUidforNames = async (uid) => {
       return [];
     }
 
-    // Extract names from the 2D array
-    const names = contact.contacts.flatMap(contactArray => 
-      contactArray.map(contact => contact.name)
+    // Extract names and associated UIDs from the 2D array
+    const namesWithUid = contact.contacts.flatMap(contactArray => 
+      contactArray.map(contact => ({ name: contact.name, uid: contact.id }))
     );
-    console.log('Names fetched successfully:', names);
-    return names;
+    console.log('Names with UIDs fetched successfully:', namesWithUid);
+    return namesWithUid;
   } catch (error) {
     console.error('Error fetching names by UID:', error);
     throw new Error('Error fetching names by UID');
