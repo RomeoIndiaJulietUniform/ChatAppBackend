@@ -5,16 +5,14 @@ const { checkUid, findNameByUid, checkUidByEmailAndName, replaceUid } = require(
 const { checkUserEmailInMongoDB, getUserEmailByUid } = require('./App/email.js');
 const { uploadUser } = require('./App/auth.js');
 const { createGroup, addMemberToGroup, findGroupNameByIdOrName, addUserToGroup } = require('./App/group.js');
-const { addContact, uploadGroupInfoToContact, provideUidforNames} = require('./App/contact.js'); // Import uploadGroupInfoToContact function
-const socketUser = require('./App/Socketuser.js');
+const { addContact, provideUidforNames} = require('./App/contact.js');
 const { fetchSenderAndReceiverUids } = require('./App/apicalls.js');
+const setupWebSocketServer = require('./App/Socketuser.js');
 const bodyParser = require('body-parser');
 const http = require('http');
 
 const app = express();
-
 const server = http.createServer(app);
-socketUser(server); 
 
 // Connect to MongoDB
 connectToMongoDB();
@@ -22,9 +20,19 @@ connectToMongoDB();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// Set up WebSocket server
+setupWebSocketServer(server);
+
+// Start the server
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
 
 // Endpoint to check if UID is present
 app.get('/api/checkUid/:uid', async (req, res) => {
@@ -241,9 +249,3 @@ app.get('/api/getUserEmailByUid/:uid', async (req, res) => {
 });
 
 
-
-// Start the server
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});

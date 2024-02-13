@@ -1,33 +1,58 @@
-const socketIO = require('socket.io');
+const socketIo = require('socket.io');
 
-function socketUser(server, senderUid, receiverUid) {
-    const io = socketIO(server);
-    const socketsByUid = {};
+const setupWebSocketServer = (server) => {
+  const io = socketIo(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST']
+    }
+  });
 
-    io.on('connection', (socket) => {
-        console.log('A user connected');
+  const connectedUsers = {}; // Map to store connected sockets by user ID
 
-        socket.on('join', (uid) => {
-            console.log(`User with UID ${uid} joined`);
-            socketsByUid[uid] = socket;
-            socket.join(uid);
-        });
+  io.on('connection', (socket) => {
+    console.log('A user connected');
 
-        socket.on('chat message', (data) => {
-            console.log('Message:', data);
-
-            const { senderUid, receiverUid, message } = data;
-
-            if (socketsByUid[receiverUid]) {
-                socketsByUid[receiverUid].emit('chat message', { senderUid, message });
-            }
-        });
-
-        socket.on('disconnect', () => {
-            console.log('User disconnected');
-            // Implement logic to remove the socket from socketsByUid if needed
-        });
+    // Store the socket connection for the user ID
+    socket.on('setUserId', (userId) => {
+      connectedUsers[userId] = socket;
+      socket.userId = userId; // Store userId in socket for later use
+      console.log(`User ${userId} connected`);
     });
-}
 
-module.exports = socketUser;
+    // Handle receiving messages from a specific user
+    socket.on('sendMessageToUser', ({ receiverId, message }) => {
+      const receiverSocket = connectedUsers[receiverId];
+      if (receiverSocket) {
+        receiverSocket.emit('message', { senderId: socket.userId, message });
+        console.log(`Message sent from ${socket.userId} to ${receiverId}: ${message}`); // Log when message is sent
+      } else {
+        console.log(`User ${receiverId} is not connected`);
+      }
+    });
+
+    // Handle receiving private messages
+    socket.on('privateMessage', ({ senderId, receiverId, message }) => {
+      console.log(`Message received from ${senderId} to ${receiverId}: ${message}`); // Log when message is received
+      const receiverSocket = connectedUsers[receiverId];
+      if (receiverSocket) {
+        receiverSocket.emit('message', { senderId, message });
+      } else {
+        console.log(`User ${receiverId} is not connected`);
+      }
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+      const disconnectedUserId = Object.keys(connectedUsers).find(
+        (userId) => connectedUsers[userId] === socket
+      );
+      if (disconnectedUserId) {
+        delete connectedUsers[disconnectedUserId];
+        console.log(`User ${disconnectedUserId} disconnected`);
+      }
+    });
+  });
+};
+
+module.exports = setupWebSocketServer;
