@@ -53,6 +53,21 @@ const setupWebSocketServer = (server) => {
       }
     });
   });
+
+  // Function to receive messages from a specific receiver and send them to the receiver's socket
+  const receiveMessageFromReceiverId = (receiverId, callback) => {
+    const receiverSocket = connectedUsers[receiverId];
+    if (receiverSocket) {
+      console.log('Climb and maintain FL550');
+      receiverSocket.on('message', ({ senderId, message }) => {
+        callback({ senderId, message });
+      });
+    } else {
+      console.log(`User ${receiverId} is not connected`);
+    }
+  };
+
+  return receiveMessageFromReceiverId;
 };
 
 module.exports = setupWebSocketServer;
