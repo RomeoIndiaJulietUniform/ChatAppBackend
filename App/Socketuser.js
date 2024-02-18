@@ -15,7 +15,7 @@ const setupWebSocketServer = (server) => {
       console.log(`Message received from ${senderId} to ${receiverId}: ${message}`);
       
   
-      io.emit('message',{senderId, message });
+      io.emit('message',{receiverId, message });
 
 
       console.log(`Message sent from ${senderId} to ${receiverId}: ${message}`);
