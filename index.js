@@ -8,6 +8,7 @@ const { createGroup, addMemberToGroup, findGroupNameByIdOrName, addUserToGroup }
 const { addContact, provideUidforNames} = require('./App/contact.js');
 const { fetchSenderAndReceiverUids } = require('./App/apicalls.js');
 const setupWebSocketServer = require('./App/Socketuser.js');
+const { uploadMessage, fetchMessages } = require('./App/messages.js');
 const bodyParser = require('body-parser');
 const http = require('http');
 
@@ -30,6 +31,42 @@ setupWebSocketServer(server);
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// Route to upload a message
+app.post('/api/messages/message', async (req, res) => {
+  try {
+    const { concatenatedIds, message } = req.body;
+    await uploadMessage(concatenatedIds, message, true); // Assuming it's a received message
+    res.status(201).send('Message received and stored successfully');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to retrieve received messages for a given concatenatedIds
+app.get('/api/messages/receivedMessages', async (req, res) => {
+  try {
+    const { concatenatedIds } = req.query;
+    const messages = await fetchMessages(concatenatedIds, true); // Assuming it's received messages
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to retrieve sent messages for a given concatenatedIds
+app.get('/api/messages/sentMessages', async (req, res) => {
+  try {
+    const { concatenatedIds } = req.query;
+    const messages = await fetchMessages(concatenatedIds, false); // Assuming it's sent messages
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 
