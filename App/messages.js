@@ -24,7 +24,7 @@ const messageSchema = new mongoose.Schema({
   }
 });
 
-// Create a Message model
+// Create a single model for both received and sent messages
 const Message = mongoose.model('Message', messageSchema);
 
 // Function to upload received or sent message
@@ -42,9 +42,11 @@ const uploadMessage = async (concatenatedIds, message, isReceived) => {
   }
 };
 
-// Function to fetch received or sent messages sorted by timestamp
+
+// Function to fetch messages sorted by timestamp
 const fetchMessages = async (concatenatedIds) => {
   try {
+    console.log(`Fetching messages for concatenatedIds: ${concatenatedIds}`);
     const messages = await Message.find({ concatenatedIds }).sort({ timestamp: 1 });
     return messages;
   } catch (error) {

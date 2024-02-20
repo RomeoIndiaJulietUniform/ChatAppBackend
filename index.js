@@ -45,29 +45,24 @@ app.post('/api/messages/message', async (req, res) => {
   }
 });
 
-// Route to retrieve received messages for a given concatenatedIds
-app.get('/api/messages/receivedMessages', async (req, res) => {
+app.get('/custom-path/:concatenatedIds', async (req, res) => {
   try {
-    const { concatenatedIds } = req.query;
-    const messages = await fetchMessages(concatenatedIds, true); // Assuming it's received messages
-    res.status(200).json(messages);
+    const { concatenatedIds } = req.params;
+    console.log('Received message parameters:', concatenatedIds);
+    
+    // Call the fetchMessages function with the provided parameters
+    const messages = await fetchMessages(concatenatedIds);
+    
+    // Respond with the fetched messages
+    console.log('Fetched messages:', messages);
+    res.json(messages);
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// Route to retrieve sent messages for a given concatenatedIds
-app.get('/api/messages/sentMessages', async (req, res) => {
-  try {
-    const { concatenatedIds } = req.query;
-    const messages = await fetchMessages(concatenatedIds, false); // Assuming it's sent messages
-    res.status(200).json(messages);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+
 
 
 
